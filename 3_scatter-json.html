@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style>
+.axis path,
+.axis line {
+fill: none;
+stroke: black;
+shape-rendering: crispEdges;
+}
+.axis text {
+font-family: sans-serif;
+font-size: 12px;
+}
+</style>
+
+<body>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+
+  <script>
+
+  d3.json('FeCuAus.json', function (jsondata) {
+    data = jsondata;
+    // Variables
+    var body = d3.select('body')
+  	var margin = { top: 50, right: 50, bottom: 50, left: 50 }
+  	var h = 500 - margin.top - margin.bottom
+  	var w = 500 - margin.left - margin.right
+  	var formatFloat = d3.format('.2f')
+    // Scales
+    var colorScale = d3.scale.category20()
+    var colors = d3.scale.linear()
+      .domain([
+        d3.min(data.GrainSize, function (d) { return d[0] }),
+        d3.max(data.GrainSize, function (d) { return d[0] })
+      	])
+      .range(['#ffffff','#3399ff'])
+    var xScale = d3.scale.linear()
+      .domain([
+        1.1*d3.min(data.PC1, function (d) { return d[0] }),
+        1.1*d3.max(data.PC1, function (d) { return d[0] })
+      	])
+      .range([0,w])
+    var yScale = d3.scale.linear()
+      .domain([
+      	1.1*d3.min(data.PC2, function (d) { return d[0] }),
+      	1.1*d3.max(data.PC2, function (d) { return d[0] })
+      	])
+      .range([h,0])
+  	// SVG
+  	var svg = body.append('svg')
+  	    .attr('height',h + margin.top + margin.bottom)
+  	    .attr('width',w + margin.left + margin.right)
+  	  .append('g')
+  	    .attr('transform','translate(' + margin.left + ',' + margin.top + ')')
+  	// X-axis
+  	var xAxis = d3.svg.axis()
+  	  .scale(xScale)
+  	  .tickFormat(formatFloat)
+  	  .ticks(5)
+  	  // .orient('bottom')
+    // Y-axis
+  	var yAxis = d3.svg.axis()
+  	  .scale(yScale)
+  	  .tickFormat(formatFloat)
+  	  .ticks(5)
+  	  .orient('left')
+    // Circles
+    // console.log(data[0].PC1)
+    var circles = svg.selectAll('circle')
+        .data(data.GrainSize)
+        .enter()
+      .append('circle')
+        .attr('cx',function (d,i) { return xScale(data.PC1[i])})
+        .attr('cy',function (d,i) { return yScale(data.PC2[i])})
+        .attr('r','10')
+        .attr('stroke','black')
+        .attr('stroke-width',1)
+        .attr('fill',function (d,i) { return colors(d) })
+        .on('mouseover', function () {
+          d3.select(this)
+            .transition()
+            .duration(500)
+            .attr('r',20)
+            .attr('stroke-width',3)
+        })
+        .on('mouseout', function () {
+          d3.select(this)
+            .transition()
+            .duration(500)
+            .attr('r',10)
+            .attr('stroke-width',1)
+        })
+      .append('title') // Tooltip
+        .text(function (d) { return 'Grain Size: ' + formatFloat(d) + ' um' })
+                            //  '\nPC 1: ' + formatFloat(d.PC1) +
+                            //  '\nPC 2: ' + formatFloat(d.PC2) +
+                            //  '\nPC 3: ' + formatFloat(d.PC3) })
+    // X-axis
+    svg.append('g')
+        .attr('class','axis')
+        .attr('transform', 'translate(0,' + h + ')')
+        .call(xAxis)
+      .append('text') // X-axis Label
+        .attr('class','label')
+        .attr('y',-10)
+        .attr('x',w)
+        .attr('dy','.71em')
+        .style('text-anchor','end')
+        .text('PC 1')
+    // Y-axis
+    svg.append('g')
+        .attr('class', 'axis')
+        .call(yAxis)
+      .append('text') // y-axis Label
+        .attr('class','label')
+        .attr('transform','rotate(-90)')
+        .attr('x',0)
+        .attr('y',5)
+        .attr('dy','.71em')
+        .style('text-anchor','end')
+        .text('PC 2')
+  })
+
+  </script>
+
+</body>
